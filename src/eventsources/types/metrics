@@ -1,0 +1,39 @@
+import { PlainObject } from "@godspeedsystems/core";
+import { EventSource } from "@godspeedsystems/plugins-express-as-http";
+import { PrismaClient } from "../../datasources/prisma-clients/schema"; 
+import promClient from '@godspeedsystems/metrics';
+
+class MyEventSource extends EventSource {
+  async initClient(): Promise<PlainObject> {
+    const client = await super.initClient();
+    client.use(appMetrics);
+    return client;
+  }
+};
+export default MyEventSource;
+
+async function appMetrics(req: any, res: any, next: any) {
+
+    try {
+        if(req.path.includes("/metrics")){
+
+          let prismaMetrics: string = '';
+          const client = new PrismaClient();
+          prismaMetrics = await client.$metrics.prometheus();
+
+          console.log("----------- Prisma Metrics --",prismaMetrics);
+          
+          let appMetrics = await promClient.register.metrics();
+          res.end(appMetrics + '\\n' + prismaMetrics);
+          }
+          
+      }catch(err: any) {
+        const error_data = err.stack || err;
+        const error_code = error_data.code || 401;
+        const error_message = error_data.message || error_data;
+        return res.status(error_code).send({ success: false, error: { code: error_code, message: error_message } })
+    }
+    next();
+}
+
+
