@@ -1,7 +1,7 @@
 {
 	"name": "test-metrics",
 	"version": "1.1.0",
-	"description": "My first godspeed project.",
+	"description": "observability testing",
 	"main": "dist/index.js",
 	"scripts": {
 		"gen-crud-api": "npx @godspeedsystems/api-generator",
